@@ -36,12 +36,12 @@ public class FriendLinkController {
                     link.setId(existing.getId());
                     return ResponseEntity.ok(ApiResponse.ok(friendLinkService.save(link)));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<FriendLink>fail("friend link not found")));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         friendLinkService.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        return ResponseEntity.ok(ApiResponse.<Void>ok(null));
     }
 }

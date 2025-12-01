@@ -1,0 +1,256 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<style>
+    .cat-page { background:#fff; border-radius:12px; padding:16px; box-shadow:0 6px 16px rgba(15,23,42,0.05); border:1px solid #e5e7eb; }
+    .cat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .cat-header h3 { margin:0; display:flex; align-items:center; gap:8px; font-size:16px; }
+    .cat-actions { display:flex; gap:8px; }
+    .cat-btn { border:none; border-radius:10px; padding:8px 12px; background:#0b72f3; color:#fff; cursor:pointer; font-weight:600; font-size:14px; box-shadow:0 8px 16px rgba(11,114,243,0.15); }
+    .cat-btn.secondary { background:#e5e7eb; color:#111827; box-shadow:none; }
+    .cat-btn:active { transform:scale(0.98); }
+    table.cat-table { width:100%; border-collapse:collapse; }
+    table.cat-table th, table.cat-table td { padding:10px 12px; border-bottom:1px solid #e5e7eb; text-align:left; font-size:14px; color:#0f172a; }
+    table.cat-table td { position:relative; }
+    table.cat-table th { background:#f9fbfd; color:#4b5563; font-weight:700; }
+    .muted { color:#6b7280; font-size:13px; }
+    .tag { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; background:#eef2ff; color:#4f46e5; border-radius:8px; font-size:12px; }
+    .ops { display:flex; gap:8px; }
+    .ops button { border:none; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px; }
+    .ops .edit { background:#e0f2fe; color:#0b72f3; }
+    .ops .del { background:#fee2e2; color:#b91c1c; }
+    .cat-dialog-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; z-index:999; }
+    .cat-dialog { background:#fff; border-radius:14px; padding:18px; width:420px; box-shadow:0 12px 28px rgba(0,0,0,0.18); }
+    .cat-dialog h4 { margin:0 0 12px; font-size:16px; }
+    .form-row { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+    .form-row label { font-size:13px; color:#374151; font-weight:600; }
+    .form-row input, .form-row select, .form-row textarea { padding:9px 10px; border-radius:10px; border:1px solid #d1d5db; font-size:14px; }
+    .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+    .icon-panel { margin-top:8px; display:grid; grid-template-columns:repeat(8, minmax(0,1fr)); gap:10px; padding:12px; border:1px solid #e5e7eb; border-radius:14px; background:linear-gradient(180deg,#f9fafc 0%,#f3f6fb 100%); box-shadow:0 10px 20px rgba(0,0,0,0.08); max-height: 12.5rem; overflow-y: auto; }
+    .icon-item { width:100%; aspect-ratio:1; border:1px solid transparent; border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease; color:#0f172a; }
+    .icon-item i { font-size:16px; }
+    .icon-item:hover { transform:translateY(-2px); box-shadow:0 8px 14px rgba(0,0,0,0.08); border-color:#0b72f3; }
+    .icon-item.active { border-color:#0b72f3; box-shadow:0 0 0 2px rgba(11,114,243,0.18); }
+    .tree-line { position:relative; display:flex; align-items:center; }
+    .tree-l { position:absolute; width:20px; height:14px; border-left:1px solid #d1d5db; border-bottom:1px solid #d1d5db; left:-14px; top:50%; transform:translateY(-50%); }
+</style>
+
+<div class="cat-page">
+    <div class="cat-header">
+        <h3><i class="fas fa-sitemap"></i> 分类管理</h3>
+        <div class="cat-actions">
+            <button class="cat-btn" onclick="openCatDialog()">新增分类</button>
+            <button class="cat-btn secondary" onclick="loadCategories()">刷新</button>
+        </div>
+    </div>
+    <table class="cat-table">
+        <thead>
+        <tr>
+            <th style="width:60px;">序号</th>
+            <th>名称</th>
+            <th style="width:140px;">上级分类</th>
+            <th style="width:160px;">图标/描述</th>
+            <th style="width:80px;">排序</th>
+            <th style="width:160px;">操作</th>
+        </tr>
+        </thead>
+        <tbody id="catTableBody">
+        <tr><td colspan="6" class="muted">加载中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="cat-dialog-backdrop" id="catDialogMask">
+    <div class="cat-dialog">
+        <h4 id="dialogTitle">新增分类</h4>
+        <input type="hidden" id="catId">
+        <div class="form-row">
+            <label for="catName">名称</label>
+            <input id="catName" placeholder="请输入分类名称">
+        </div>
+        <div class="form-row">
+            <label for="catParent">上级分类</label>
+            <select id="catParent"></select>
+        </div>
+        <div class="form-row">
+            <label>图标（面板选择或自定义）</label>
+            <input id="catDesc" placeholder="自定义图标类名，如 fas fa-star" style="margin-top:6px;">
+            <div class="icon-panel" id="iconPanel"></div>
+        </div>
+        <div class="form-row">
+            <label for="catSort">排序（数字越小越靠前）</label>
+            <input id="catSort" type="number" value="0">
+        </div>
+        <div class="form-row">
+            <label for="catMemo">描述</label>
+            <textarea id="catMemo" rows="3" placeholder="填写分类描述"></textarea>
+        </div>
+        <div class="dialog-actions">
+            <button class="cat-btn secondary" onclick="closeCatDialog()">取消</button>
+            <button class="cat-btn" id="saveCatBtn">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const catTableBody = document.getElementById('catTableBody');
+
+    function updateParentOptions(selected, excludeId) {
+        const sel = document.getElementById('catParent');
+        if (!sel) return;
+        sel.innerHTML = '';
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = '无（顶级分类）';
+        sel.appendChild(none);
+        (window.__catList || []).forEach(cat => {
+            if (excludeId && Number(excludeId) === Number(cat.id)) return;
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.name;
+            if (selected !== undefined && selected !== null && Number(selected) === Number(cat.id)) {
+                opt.selected = true;
+            }
+            sel.appendChild(opt);
+        });
+    }
+
+    function closeCatDialog() {
+        const mask = document.getElementById('catDialogMask');
+        if (mask) mask.style.display = 'none';
+    }
+
+    function openCatDialog(id, presetParentId) {
+        const mask = document.getElementById('catDialogMask');
+        const title = document.getElementById('dialogTitle');
+        const cat = (window.__catList || []).find(c => Number(c.id) === Number(id));
+        document.getElementById('catId').value = cat ? cat.id : '';
+        document.getElementById('catName').value = cat ? (cat.name || '') : '';
+        document.getElementById('catDesc').value = cat ? (cat.iconClass || cat.description || '') : '';
+        setIconActive(document.getElementById('catDesc').value || '');
+        document.getElementById('catSort').value = cat ? (cat.sortOrder ?? 0) : 0;
+        if (document.getElementById('catMemo')) document.getElementById('catMemo').value = cat && cat.memo ? cat.memo : '';
+        const parentVal = cat ? (cat.parentId || '') : (presetParentId || '');
+        updateParentOptions(parentVal || '', cat ? cat.id : null);
+        if (title) title.innerText = cat ? '编辑分类' : '新增分类';
+        if (mask) mask.style.display = 'flex';
+    }
+
+    function buildIconCell(cat) {
+        if (cat.iconClass) {
+            return `<span class="tag"><i class="${cat.iconClass}"></i><span>${cat.iconClass}</span></span>`;
+        }
+        return `<span class="muted">-</span>`;
+    }
+
+    // 常用 > 内容 > 设备 > 数据/安全 > 网络/通信
+    const presetIcons = [
+        // 常用操作
+        'fas fa-star','fas fa-heart','fas fa-bookmark','fas fa-tags','fas fa-magic','fas fa-bolt','fas fa-fire','fas fa-gift','fas fa-trophy','fas fa-bullseye','fas fa-smile','fas fa-thumbtack',
+        // 内容/导航
+        'fas fa-link','fas fa-folder','fas fa-book','fas fa-map','fas fa-compass','fas fa-paper-plane','fas fa-pen','fas fa-feather','fas fa-camera','fas fa-music','fas fa-gamepad','fas fa-guitar',
+        'fas fa-home','fas fa-tree','fas fa-leaf','fas fa-sun','fas fa-cloud-sun','fas fa-umbrella','fas fa-plane','fas fa-ship','fas fa-truck','fas fa-car','fas fa-bus','fas fa-bicycle','fas fa-train',
+        // 设备/硬件
+        'fas fa-laptop-code','fas fa-desktop','fas fa-laptop','fas fa-tablet-alt','fas fa-mobile-alt','fas fa-keyboard','fas fa-tv','fas fa-headphones','fas fa-headset','fas fa-robot','fas fa-microchip','fas fa-memory','fas fa-hdd','fas fa-sd-card','fas fa-sim-card',
+        // 工具/办公
+        'fas fa-cog','fas fa-wrench','fas fa-hammer','fas fa-paint-brush','fas fa-palette','fas fa-clipboard','fas fa-clipboard-check','fas fa-clipboard-list','fas fa-briefcase','fas fa-id-card','fas fa-id-badge',
+        // 数据/安全
+        'fas fa-database','fas fa-digital-tachograph','fas fa-server','fas fa-hands-helping','fas fa-user-shield','fas fa-user-lock','fas fa-lock','fas fa-lock-open','fas fa-key','fas fa-fingerprint','fas fa-shield-alt','fas fa-shield-virus',
+        // 网络/通信（优先显示常用）
+        'fas fa-wifi','fas fa-signal','fas fa-network-wired','fas fa-ethernet','fas fa-project-diagram','fas fa-sitemap','fas fa-route','fas fa-stream','fas fa-code-branch','fas fa-random','fas fa-exchange-alt','fas fa-sync','fas fa-sync-alt','fas fa-share-alt','fas fa-share-alt-square',
+        'fas fa-podcast','fas fa-broadcast-tower','fas fa-wave-square','fas fa-satellite','fas fa-satellite-dish',
+        'fas fa-cloud','fas fa-cloud-download-alt','fas fa-cloud-upload-alt','fas fa-cloudscale','fas fa-cloudsmith','fas fa-cloudversify','fas fa-cloudflare',
+        'fas fa-qrcode','fas fa-barcode','fas fa-terminal','fas fa-plug','fas fa-charging-station','fas fa-battery-full','fas fa-battery-half',
+        // 通话/消息/社交
+        'fas fa-phone','fas fa-phone-alt','fas fa-phone-square','fas fa-headphones-alt','fas fa-tty','fas fa-voicemail','fas fa-comment-dots','fas fa-comments','fas fa-sms','fas fa-envelope','fas fa-envelope-open','fas fa-mail-bulk','fas fa-paperclip',
+        // 其他拓展
+        'fas fa-rocket','fas fa-gem','fas fa-brain','fas fa-lightbulb','fas fa-chart-bar','fas fa-bell','fas fa-bug','fas fa-anchor','fas fa-crosshairs','fas fa-eye','fas fa-eye-slash','fas fa-user-secret','fas fa-user-cog',
+        'fas fa-shopping-cart','fas fa-coffee','fas fa-code','fas fa-newspaper','fas fa-school','fas fa-graduation-cap','fas fa-hands-helping','fas fa-cat','fas fa-dog','fas fa-paw','fas fa-dragon','fas fa-meteor'
+    ];
+    const iconColors = ['#0ea5e9','#8b5cf6','#f97316','#10b981','#ef4444','#6366f1','#14b8a6','#0ea5e9','#6366f1','#f59e0b','#ef4444','#22c55e'];
+
+    function renderIconPanel() {
+        const panel = document.getElementById('iconPanel');
+        if (!panel) return;
+        panel.innerHTML = '';
+        presetIcons.forEach((icon, idx) => {
+            const div = document.createElement('div');
+            div.className = 'icon-item';
+            const color = iconColors[idx % iconColors.length];
+            div.style.background = `linear-gradient(135deg, ${color}22, ${color}11)`;
+            div.style.borderColor = `${color}55`;
+            div.innerHTML = `<i class="${icon}" style="color:${color};"></i>`;
+            div.title = icon;
+            div.onclick = () => {
+                document.getElementById('catDesc').value = icon;
+                setIconActive(icon);
+            };
+            panel.appendChild(div);
+        });
+        setIconActive(document.getElementById('catDesc')?.value || '');
+    }
+
+    function setIconActive(icon) {
+        const items = document.querySelectorAll('.icon-item');
+        items.forEach(el => {
+            const isActive = el.title === icon;
+            el.classList.toggle('active', isActive);
+        });
+    }
+
+    window.renderCategoryTree = function renderCategoryTree(list) {
+        const data = list || [];
+        window.__catList = data;
+        renderIconPanel();
+        if (!catTableBody) return;
+        catTableBody.innerHTML = '';
+        if (!data.length) {
+            catTableBody.innerHTML = `<tr><td colspan="6" class="muted">暂无分类数据</td></tr>`;
+            updateParentOptions('');
+            return;
+        }
+        const childrenMap = new Map();
+        data.forEach(c => {
+            const pidNum = Number(c.parentId);
+            const pid = Number.isFinite(pidNum) && pidNum !== 0 ? pidNum : 0;
+            if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+            childrenMap.get(pid).push(c);
+        });
+        childrenMap.forEach(arr => arr.sort((a,b) => {
+            const sa = Number(a.sortOrder || 0), sb = Number(b.sortOrder || 0);
+            if (sa !== sb) return sa - sb;
+            return Number(a.id) - Number(b.id);
+        }));
+        let seq = 1;
+        function walk(pid, depth) {
+            (childrenMap.get(pid) || []).forEach(cat => {
+                const displayId = seq++;
+                const indentPx = depth * 20;
+                const lSpan = depth > 0 ? `<span class="tree-l" style="left:${indentPx - 14}px;"></span>` : '';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${displayId} <span class="muted">#${cat.id}</span></td>
+                    <td style="padding-left:${indentPx}px;">
+                        <div class="tree-line">${lSpan}<span>${cat.name || ''}</span></div>
+                    </td>
+                    <td>${cat.parentName || (cat.parentId ? ('ID ' + cat.parentId) : '顶级')}</td>
+                    <td>${buildIconCell(cat)}</td>
+                    <td>${cat.sortOrder ?? 0}</td>
+                    <td>
+                        <div class="ops">
+                            <button class="edit" onclick="openCatDialog(${cat.id})">编辑</button>
+                            <button class="del" onclick="deleteCategory(${cat.id})">删除</button>
+                        </div>
+                    </td>
+                `;
+                catTableBody.appendChild(tr);
+                walk(cat.id, depth + 1);
+            });
+        }
+        walk(0, 0);
+        updateParentOptions('');
+    };
+
+    document.getElementById('saveCatBtn').addEventListener('click', async () => {
+        await createCategory();
+        closeCatDialog();
+    });
+</script>

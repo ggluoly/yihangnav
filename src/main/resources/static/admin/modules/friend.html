@@ -1,0 +1,26 @@
+<div class="panel panel-block" id="panel-friend">
+    <h3>友链管理</h3>
+    <div class="row">
+        <div>
+            <label>标题</label>
+            <input id="linkTitle" placeholder="站点名称">
+        </div>
+        <div>
+            <label>URL</label>
+            <input id="linkUrl" placeholder="https://">
+        </div>
+        <div>
+            <label>Logo</label>
+            <input id="linkLogo" placeholder="Logo URL">
+        </div>
+        <div>
+            <label>排序</label>
+            <input id="linkSort" type="number" value="0">
+        </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+        <button onclick="createFriend()">新增友链</button>
+        <button class="secondary" onclick="loadFriends()">刷新</button>
+    </div>
+    <div class="list" id="friendList" style="margin-top:10px;"></div>
+</div>

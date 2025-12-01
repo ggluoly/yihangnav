@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,7 +72,7 @@ public class PublicController {
     }
 
     private List<SearchEngineDTO> buildSearchEngines() {
-        return List.of(
+        return Arrays.asList(
                 new SearchEngineDTO("Google", "全网搜索", "https://www.google.com/search?q=%s"),
                 new SearchEngineDTO("Baidu", "百度一下", "https://www.baidu.com/s?wd=%s"),
                 new SearchEngineDTO("Bing", "Bing Search", "https://www.bing.com/search?q=%s"),

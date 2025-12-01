@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贻点导航后台登录</title>
+    <style>
+        :root {
+            --primary: #0b72f3;
+            --text: #1d2939;
+            --muted: #6b7280;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px at 10% 20%, rgba(14,114,243,0.12), transparent 45%),
+                radial-gradient(900px at 90% 10%, rgba(13,162,255,0.12), transparent 40%),
+                radial-gradient(1100px at 80% 80%, rgba(244,63,94,0.12), transparent 45%),
+                linear-gradient(135deg, #0b172b, #0f2037 45%, #0d1b2a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        }
+        .login-shell {
+            position: relative;
+            width: min(1080px, 100%);
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.1fr 480px;
+        }
+        .login-visual {
+            background: url('/assets/images/bg-login.jpg') center/cover no-repeat;
+            min-height: 620px;
+        }
+        .login-panel {
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            justify-content: center;
+        }
+        .login-panel h1 { margin: 0; font-size: 30px; letter-spacing: 0.2px; transition: color .2s ease; }
+        .login-panel h1:hover { color: #0b72f3; }
+        .login-panel p { margin: 0; color: var(--muted); font-size: 14px; }
+        .login-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 22px 22px 26px;
+            box-shadow: 0 14px 32px rgba(15,23,42,0.14);
+            border: 1px solid #f1f5f9;
+            width: 100%;
+            max-width: 360px;
+        }
+        label { display: block; margin: 10px 0 6px; color: var(--muted); font-size: 13px; font-weight: 700; }
+        input, button {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            color: var(--text);
+            font-size: 14px;
+        }
+        input:focus {
+            outline: 2px solid rgba(11,114,243,0.16);
+            border-color: rgba(11,114,243,0.32);
+        }
+        button {
+            cursor: pointer;
+            background: linear-gradient(135deg, #0b72f3, #0da2ff);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            transition: transform .1s ease, box-shadow .2s ease;
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(13,162,255,0.35); }
+        @media (max-width: 1024px) {
+            .login-shell { grid-template-columns: 1fr; }
+            .login-visual { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="login-shell">
+    <div class="login-visual"></div>
+    <div class="login-panel">
+        <div class="login-head">
+            <h1>贻点导航后台管理系统</h1>
+            <p>安全登录后台，继续管理你的导航站。</p>
+        </div>
+        <div class="login-card">
+            <label>用户名</label>
+            <input id="username" placeholder="请输入账号" autocomplete="username" style="height: 48px; font-size: 15px;">
+            <label>密码</label>
+            <input id="password" type="password" placeholder="请输入密码" autocomplete="current-password" style="height: 48px; font-size: 15px;">
+            <button style="margin-top:16px; height: 48px; font-size: 15px;" onclick="login()">登录</button>
+            <p class="muted" id="loginMsg" style="color:#6b7280;"></p>
+        </div>
+    </div>
+</div>
+<script>
+    const tokenKey = 'yh_token';
+    const api = (path) => '/api' + path;
+    const setStatus = (msg) => document.getElementById('loginMsg').innerText = msg || '';
+
+    if (localStorage.getItem(tokenKey)) {
+        window.location.href = '/admin/index.html';
+    }
+
+    async function login() {
+        setStatus('登录中...');
+        const body = { username: document.getElementById('username').value, password: document.getElementById('password').value };
+        const res = await fetch(api('/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) {
+            localStorage.setItem(tokenKey, data.data.token);
+            window.location.href = '/admin/index.html';
+        } else {
+            setStatus(data.message || '登录失败');
+        }
+    }
+</script>
+</body>
+</html>

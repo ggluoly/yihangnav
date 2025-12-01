@@ -66,14 +66,14 @@ public class BackupService {
     }
 
     private BackupRecord createBackup(String type) throws Exception {
-        Path dbPath = Path.of(databasePath);
-        Files.createDirectories(Path.of(backupDir));
+        Path dbPath = java.nio.file.Paths.get(databasePath);
+        Files.createDirectories(java.nio.file.Paths.get(backupDir));
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String fileName = "backup-" + timestamp + ".zip";
-        Path target = Path.of(backupDir, fileName);
+        Path target = java.nio.file.Paths.get(backupDir, fileName);
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(target.toFile()))) {
             addFileToZip(zos, dbPath.toFile(), dbPath.getFileName().toString());
-            Path uploadRoot = Path.of(uploadDir);
+            Path uploadRoot = java.nio.file.Paths.get(uploadDir);
             if (Files.exists(uploadRoot)) {
                 Files.walk(uploadRoot)
                         .filter(Files::isRegularFile)
@@ -120,7 +120,7 @@ public class BackupService {
         List<BackupRecord> toDelete = records.subList(maxCopies, records.size());
         toDelete.forEach(r -> {
             try {
-                Files.deleteIfExists(Path.of(r.getFilePath()));
+                Files.deleteIfExists(java.nio.file.Paths.get(r.getFilePath()));
             } catch (Exception ignored) {
             }
         });
@@ -143,7 +143,7 @@ public class BackupService {
                 .collect(Collectors.toList());
         expired.forEach(r -> {
             try {
-                Files.deleteIfExists(Path.of(r.getFilePath()));
+                Files.deleteIfExists(java.nio.file.Paths.get(r.getFilePath()));
             } catch (Exception ignored) {
             }
         });
@@ -158,7 +158,7 @@ public class BackupService {
     public void delete(Long id) {
         backupRecordRepository.findById(id).ifPresent(r -> {
             try {
-                Files.deleteIfExists(Path.of(r.getFilePath()));
+                Files.deleteIfExists(java.nio.file.Paths.get(r.getFilePath()));
             } catch (Exception ignored) {
             }
             backupRecordRepository.delete(r);
@@ -169,9 +169,9 @@ public class BackupService {
     public void restore(Path source) throws Exception {
         try (InputStream is = Files.newInputStream(source); ZipInputStream zis = new ZipInputStream(is)) {
             ZipEntry entry;
-            Path dbPath = Path.of(databasePath);
-            Path uploadRoot = Path.of(uploadDir);
-            Files.createDirectories(dbPath.getParent() == null ? Path.of(".") : dbPath.getParent());
+            Path dbPath = java.nio.file.Paths.get(databasePath);
+            Path uploadRoot = java.nio.file.Paths.get(uploadDir);
+            Files.createDirectories(dbPath.getParent() == null ? java.nio.file.Paths.get(".") : dbPath.getParent());
             Files.createDirectories(uploadRoot);
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();

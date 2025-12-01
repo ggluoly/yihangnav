@@ -17,6 +17,10 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    public List<Category> listAll() {
+        return categoryRepository.findAllByOrderBySortOrderAscIdAsc();
+    }
+
     public List<Category> listRoot() {
         return categoryRepository.findAllByParentIsNullOrderBySortOrderAscIdAsc();
     }

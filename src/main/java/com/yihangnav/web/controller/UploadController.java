@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -35,7 +36,7 @@ public class UploadController {
         try {
             String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
             String name = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()) + "-" + UUID.randomUUID().toString() + (ext != null ? "." + ext : "");
-            Path targetDir = Path.of(uploadDir);
+            Path targetDir = Paths.get(uploadDir);
             Files.createDirectories(targetDir);
             Path target = targetDir.resolve(name);
             file.transferTo(target.toFile());

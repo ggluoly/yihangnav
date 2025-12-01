@@ -25,6 +25,8 @@ public class UserAccount extends BaseEntity {
 
     private String lastLoginIp;
 
+    private String lastLoginUa;
+
     public String getUsername() {
         return username;
     }
@@ -71,5 +73,13 @@ public class UserAccount extends BaseEntity {
 
     public void setLastLoginIp(String lastLoginIp) {
         this.lastLoginIp = lastLoginIp;
+    }
+
+    public String getLastLoginUa() {
+        return lastLoginUa;
+    }
+
+    public void setLastLoginUa(String lastLoginUa) {
+        this.lastLoginUa = lastLoginUa;
     }
 }

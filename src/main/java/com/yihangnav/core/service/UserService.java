@@ -14,10 +14,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.yihangnav.core.repository.LoginLogRepository loginLogRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, com.yihangnav.core.repository.LoginLogRepository loginLogRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginLogRepository = loginLogRepository;
     }
 
     @Transactional
@@ -43,9 +45,17 @@ public class UserService {
     }
 
     @Transactional
-    public void recordLogin(UserAccount account, String ip) {
-        account.setLastLoginAt(LocalDateTime.now());
+    public void recordLogin(UserAccount account, String ip, String ua) {
+        LocalDateTime now = LocalDateTime.now();
+        account.setLastLoginAt(now);
         account.setLastLoginIp(ip);
+        account.setLastLoginUa(ua);
         userRepository.save(account);
+        com.yihangnav.core.domain.LoginLog log = new com.yihangnav.core.domain.LoginLog();
+        log.setUsername(account.getUsername());
+        log.setIp(ip);
+        log.setUa(ua);
+        log.setLoginAt(now);
+        loginLogRepository.save(log);
     }
 }

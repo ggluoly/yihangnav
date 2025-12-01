@@ -1,0 +1,24 @@
+<div class="panel panel-block" id="panel-user">
+    <h3>用户管理</h3>
+    <div class="row">
+        <div>
+            <label>用户名</label>
+            <input id="userNameInput" placeholder="新用户名">
+        </div>
+        <div>
+            <label>密码</label>
+            <input id="userPwdInput" placeholder="新密码">
+        </div>
+        <div>
+            <label>角色</label>
+            <select id="userRoleInput">
+                <option value="ADMIN">ADMIN</option>
+            </select>
+        </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+        <button onclick="createUser()">新增用户</button>
+        <button class="secondary" onclick="loadUsers()">刷新</button>
+    </div>
+    <div class="list" id="userList" style="margin-top:10px;"></div>
+</div>

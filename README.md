@@ -1,5 +1,4 @@
-# Yihang 导航站
-
+# 贻点导航站
 基于 Spring Boot 2.7 + SQLite + JWT 的卡片式导航站点，前端复用 `web_tool-master` 的静态页面，后端提供聚合搜索、栏目/卡片/广告/友链、上传、备份等接口。
 
 ## 快速开始
@@ -10,10 +9,10 @@
 
 ## 环境变量
 - `PORT`：服务端口，默认 `8888`
-- `ADMIN_USERNAME` / `ADMIN_PASSWORD`：初始管理员账号，默认 `admin / 123456`
+|- `ADMIN_USERNAME` / `ADMIN_PASSWORD`：初始管理员账号，默认 `admin / 123456`
 - `JWT_SECRET`：JWT 密钥
 - `JWT_EXPIRE_HOURS`：Token 过期小时数，默认 `24`
-- `SQLITE_PATH`：SQLite 文件路径，默认 `./data/yihangnav.db`
+- `SQLITE_PATH`：SQLite 文件路径，默认 `./data/yidiannav.db`
 - `UPLOAD_DIR`：上传文件保存目录，默认 `./uploads`
 - `BACKUP_DIR`：备份目录，默认 `./backups`
 - `BACKUP_MAX_COPIES`：最大保留备份份数，默认 `10`
@@ -23,12 +22,12 @@
 - 聚合导航：栏目树 + 卡片，卡片支持启用/禁用、排序、logo/描述。
 - 聚合搜索：`/api/search?keyword=xxx`（记录关键词/IP/UA），并提供外部搜索引擎列表 `/api/public/search-engines`（Google/Baidu/Bing/GitHub/站内）。
 - 广告/友链：左右悬浮广告位、友情链接 CRUD。
-- 站点配置：任意 KV，支持设置背景、标题、广告开关等 UI 配置（默认背景、标题、广告开关会自动初始化）。
+- 站点配置：任意 KV，支持设置背景、标题、广告开关等 UI 配置。
 - 用户/认证：JWT 登录，记录登录时间/IP，管理员 CRUD。
 - 上传：`/api/admin/upload`，返回可访问 URL（静态映射 `/uploads/**`）。
 - 备份/恢复：手动/自动备份为 ZIP（包含 SQLite 数据库 + 上传文件），自动定时备份（凌晨 3 点），支持删除历史、上传 ZIP 恢复。
 - 统计：简单登录统计接口 `/api/admin/stats`。
-- 卡片元数据解析：`GET /api/admin/cards/metadata?url=...` 自动尝试抓取站点标题/描述/Logo，便于快速录入。
+- 卡片元数据解析：`GET /api/admin/cards/metadata?url=...` 自动抓取站点标题/描述/Logo，便于快速录入。
 
 ## 关键接口速览
 - 认证：`POST /api/auth/login`，`GET /api/auth/me`

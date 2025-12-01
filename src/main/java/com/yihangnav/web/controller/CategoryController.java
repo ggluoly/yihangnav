@@ -3,11 +3,14 @@ package com.yihangnav.web.controller;
 import com.yihangnav.core.domain.Category;
 import com.yihangnav.core.service.CategoryService;
 import com.yihangnav.web.dto.ApiResponse;
+import com.yihangnav.web.dto.CategoryAdminDTO;
+import com.yihangnav.web.dto.CategoryUpdateRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/categories")
@@ -20,8 +23,10 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ApiResponse<List<Category>> listRoot() {
-        return ApiResponse.ok(categoryService.listRoot());
+    public ApiResponse<List<CategoryAdminDTO>> listAll() {
+        return ApiResponse.ok(categoryService.listAll().stream()
+                .map(CategoryAdminDTO::from)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}/children")
@@ -30,23 +35,42 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ApiResponse<Category> create(@Valid @RequestBody Category category) {
-        return ApiResponse.ok(categoryService.save(category));
+    public ApiResponse<CategoryAdminDTO> create(@Valid @RequestBody Category category) {
+        Category saved = categoryService.save(category);
+        return ApiResponse.ok(CategoryAdminDTO.from(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Category>> update(@PathVariable Long id, @Valid @RequestBody Category category) {
+    public ResponseEntity<ApiResponse<CategoryAdminDTO>> update(@PathVariable Long id, @RequestBody CategoryUpdateRequest request) {
         return categoryService.findById(id)
                 .map(existing -> {
-                    category.setId(existing.getId());
-                    return ResponseEntity.ok(ApiResponse.ok(categoryService.save(category)));
+                    if (request.getName() != null) {
+                        existing.setName(request.getName());
+                    }
+                    if (request.getDescription() != null) {
+                        existing.setDescription(request.getDescription());
+                    }
+                    if (request.getSortOrder() != null) {
+                        existing.setSortOrder(request.getSortOrder());
+                    }
+                    if (request.isParentIdSet()) {
+                        if (request.getParentId() != null) {
+                            Category parent = new Category();
+                            parent.setId(request.getParentId());
+                            existing.setParent(parent);
+                        } else {
+                            existing.setParent(null);
+                        }
+                    }
+                    Category saved = categoryService.save(existing);
+                    return ResponseEntity.ok(ApiResponse.ok(CategoryAdminDTO.from(saved)));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<CategoryAdminDTO>fail("category not found")));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         categoryService.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        return ResponseEntity.ok(ApiResponse.<Void>ok(null));
     }
 }

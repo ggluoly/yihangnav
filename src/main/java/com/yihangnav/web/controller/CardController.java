@@ -38,13 +38,13 @@ public class CardController {
                     attachCategory(card);
                     return ResponseEntity.ok(ApiResponse.ok(cardService.save(card)));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<Card>fail("card not found")));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         cardService.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        return ResponseEntity.ok(ApiResponse.<Void>ok(null));
     }
 
     @GetMapping("/search")

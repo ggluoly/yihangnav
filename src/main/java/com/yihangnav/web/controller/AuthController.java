@@ -32,13 +32,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Validated @RequestBody LoginRequest request,
-                                                           HttpServletRequest servletRequest) {
+                                                           HttpServletRequest servletRequest,
+                                                           @RequestHeader(value = "User-Agent", required = false) String ua) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(request.getUsername());
         userService.findByUsername(request.getUsername()).ifPresent(user ->
-                userService.recordLogin(user, servletRequest.getRemoteAddr()));
+                userService.recordLogin(user, servletRequest.getRemoteAddr(), ua));
         UserAccount user = userService.findByUsername(request.getUsername()).orElse(null);
         String role = user != null ? user.getRole() : "USER";
         return ResponseEntity.ok(ApiResponse.ok(new AuthResponse(token, request.getUsername(), role)));

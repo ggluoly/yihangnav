@@ -45,8 +45,8 @@ public class UserAdminController {
                 .map(u -> {
                     u.setPassword(passwordEncoder.encode(password));
                     userRepository.save(u);
-                    return ResponseEntity.ok(ApiResponse.ok(null));
+                    return ResponseEntity.ok(ApiResponse.<Void>ok(null));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<Void>fail("user not found")));
     }
 }

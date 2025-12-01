@@ -4,6 +4,7 @@ import com.yihangnav.core.service.SiteConfigService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -17,11 +18,10 @@ public class ConfigInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        Map<String, String> defaults = Map.of(
-                "site.title", "易航导航",
-                "site.background", "/assets/images/bg.webp",
-                "ads.enabled", "true"
-        );
+        Map<String, String> defaults = new HashMap<>();
+        defaults.put("site.title", "易航导航");
+        defaults.put("site.background", "/assets/images/bg.webp");
+        defaults.put("ads.enabled", "true");
         defaults.forEach((k, v) -> siteConfigService.get(k).orElseGet(() -> siteConfigService.save(k, v)));
     }
 }

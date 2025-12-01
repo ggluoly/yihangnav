@@ -36,12 +36,12 @@ public class AdController {
                     slot.setId(existing.getId());
                     return ResponseEntity.ok(ApiResponse.ok(adSlotService.save(slot)));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<AdSlot>fail("ad not found")));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         adSlotService.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        return ResponseEntity.ok(ApiResponse.<Void>ok(null));
     }
 }

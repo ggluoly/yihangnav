@@ -8,4 +8,5 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findAllByParentIsNullOrderBySortOrderAscIdAsc();
     List<Category> findAllByParentIdOrderBySortOrderAscIdAsc(Long parentId);
+    List<Category> findAllByOrderBySortOrderAscIdAsc();
 }

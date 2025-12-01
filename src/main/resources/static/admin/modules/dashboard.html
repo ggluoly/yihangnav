@@ -1,0 +1,72 @@
+<div class="stats-grid panel-block active" id="panel-dashboard">
+    <div class="stat-card">
+        <div class="badge accent-blue">👤</div>
+        <div class="stat-body">
+            <div class="stat-title">用户数</div>
+            <div class="stat-value" id="statUsers">-</div>
+            <div class="stat-sub">管理员与普通用户总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-purple">🏷</div>
+        <div class="stat-body">
+            <div class="stat-title">站点标题</div>
+            <div class="stat-value" id="cfgTitle">-</div>
+            <div class="stat-sub">从配置读取</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-green">🗂</div>
+        <div class="stat-body">
+            <div class="stat-title">分类数量</div>
+            <div class="stat-value" id="statCat">-</div>
+            <div class="stat-sub">有效分类总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-orange">🔗</div>
+        <div class="stat-body">
+            <div class="stat-title">链接数量</div>
+            <div class="stat-value" id="statCard">-</div>
+            <div class="stat-sub">导航卡片总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-pink">🤝</div>
+        <div class="stat-body">
+            <div class="stat-title">友链数量</div>
+            <div class="stat-value" id="statFriend">-</div>
+            <div class="stat-sub">友情链接总数</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-slate">🔍</div>
+        <div class="stat-body">
+            <div class="stat-title">搜索记录</div>
+            <div class="stat-value" id="statSearch">-</div>
+            <div class="stat-sub">站内搜索关键词</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="badge accent-green">💾</div>
+        <div class="stat-body">
+            <div class="stat-title">备份数量</div>
+            <div class="stat-value" id="statBackup">-</div>
+            <div class="stat-sub">自动/手动备份总计</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel" style="margin-top:12px;">
+    <h3 style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">⟳</span> 最近登录记录</h3>
+    <table class="recent-table">
+        <thead>
+        <tr>
+            <th>登录时间</th>
+            <th>IP地址</th>
+            <th>浏览器</th>
+        </tr>
+        </thead>
+        <tbody id="recentLoginTable"></tbody>
+    </table>
+</div>

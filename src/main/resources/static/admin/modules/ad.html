@@ -1,0 +1,31 @@
+<div class="panel panel-block" id="panel-ad">
+    <h3>广告管理</h3>
+    <div class="row">
+        <div>
+            <label>位置</label>
+            <select id="adPos">
+                <option value="LEFT">LEFT</option>
+                <option value="RIGHT">RIGHT</option>
+                <option value="TOP">TOP</option>
+                <option value="BOTTOM">BOTTOM</option>
+            </select>
+        </div>
+        <div>
+            <label>标题</label>
+            <input id="adTitle" placeholder="广告标题">
+        </div>
+        <div>
+            <label>图片</label>
+            <input id="adImg" placeholder="图片URL">
+        </div>
+        <div>
+            <label>链接</label>
+            <input id="adLink" placeholder="跳转链接">
+        </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+        <button onclick="createAd()">新增广告</button>
+        <button class="secondary" onclick="loadAds()">刷新</button>
+    </div>
+    <div class="list" id="adList" style="margin-top:10px;"></div>
+</div>

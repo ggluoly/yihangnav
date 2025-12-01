@@ -1,0 +1,35 @@
+<div class="panel panel-block" id="panel-card">
+    <h3>卡片管理</h3>
+    <div class="row">
+        <div>
+            <label>标题</label>
+            <input id="cardTitle" placeholder="网站名称">
+        </div>
+        <div>
+            <label>URL</label>
+            <input id="cardUrl" placeholder="https://">
+        </div>
+        <div>
+            <label>描述</label>
+            <input id="cardDesc" placeholder="一句话描述">
+        </div>
+        <div>
+            <label>Logo</label>
+            <input id="cardLogo" placeholder="可留空自动抓取">
+        </div>
+        <div>
+            <label>分类ID</label>
+            <input id="cardCatId" type="number" placeholder="分类ID">
+        </div>
+        <div>
+            <label>排序</label>
+            <input id="cardSort" type="number" value="0">
+        </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+        <button onclick="createCard()">新增卡片</button>
+        <button class="secondary" onclick="searchCards()">搜索卡片</button>
+        <input id="cardKeyword" placeholder="关键词搜索" style="grid-column: span 2;">
+    </div>
+    <div class="list" id="cardList" style="margin-top:10px;"></div>
+</div>

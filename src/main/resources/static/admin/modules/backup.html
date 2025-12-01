@@ -1,0 +1,13 @@
+<div class="panel panel-block" id="panel-backup">
+    <h3>备份与恢复</h3>
+    <div class="row">
+        <button onclick="triggerBackup()">立即备份</button>
+        <button class="secondary" onclick="loadBackups()">刷新列表</button>
+    </div>
+    <div style="margin:10px 0;">
+        <input type="file" id="restoreFile" />
+        <button class="secondary" onclick="restoreBackup()">上传并恢复</button>
+    </div>
+    <div class="list" id="backupList"></div>
+    <p class="muted">备份为 ZIP，包含 SQLite 与上传目录，可定时自动备份。</p>
+</div>

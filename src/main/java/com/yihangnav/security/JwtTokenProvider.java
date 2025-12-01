@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Date;
 
 @Component
@@ -24,7 +27,11 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            keyBytes = strengthenKey(keyBytes);
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(String username) {
@@ -45,5 +52,19 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
+    }
+
+    private byte[] strengthenKey(byte[] origin) {
+        byte[] target = new byte[32];
+        // repeat origin to fill, then randomize remaining to ensure entropy
+        for (int i = 0; i < target.length; i++) {
+            target[i] = origin[i % origin.length];
+        }
+        if (origin.length < 32) {
+            byte[] random = new byte[32 - origin.length];
+            new SecureRandom().nextBytes(random);
+            System.arraycopy(random, 0, target, origin.length, random.length);
+        }
+        return target;
     }
 }

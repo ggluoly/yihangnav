@@ -1,0 +1,25 @@
+<div class="panel panel-block" id="panel-config">
+    <h3>配置快速修改</h3>
+    <div class="row">
+        <div>
+            <label>站点标题</label>
+            <input id="siteTitle" placeholder="贻点导航">
+        </div>
+        <div>
+            <label>背景地址</label>
+            <input id="siteBg" placeholder="/assets/images/bg.webp">
+        </div>
+        <div>
+            <label>广告开关</label>
+            <select id="adsEnabled">
+                <option value="true">开启</option>
+                <option value="false">关闭</option>
+            </select>
+        </div>
+    </div>
+    <div class="row" style="margin-top:12px;">
+        <button onclick="saveConfig()">保存配置</button>
+        <button class="secondary" onclick="logout()">退出登录</button>
+    </div>
+    <p class="muted" id="configMsg"></p>
+</div>
