@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易航导航后台</title>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --card: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #f0f4f8;
+            --muted: #9bb0c1;
+            --primary: #50c9c3;
+            --danger: #ff6b6b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 32px;
+        }
+        .container {
+            width: min(1200px, 100%);
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px 18px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+        h2 { margin: 0 0 12px; font-size: 18px; }
+        label { display: block; margin: 8px 0 4px; color: var(--muted); font-size: 13px; }
+        input, select, button {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            font-size: 14px;
+        }
+        button {
+            cursor: pointer;
+            background: linear-gradient(135deg, #53e3a6, #3ca9f0);
+            border: none;
+            font-weight: 600;
+            transition: transform .1s ease, box-shadow .2s ease;
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(60,169,240,0.35); }
+        button.secondary { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); }
+        button.danger { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .pill { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 12px; display: inline-flex; gap: 6px; align-items: center; }
+        .list { display: flex; flex-direction: column; gap: 10px; }
+        .item { padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .muted { color: var(--muted); font-size: 13px; }
+        .status-ok { color: #8be2c8; font-weight: 600; }
+        .status-warn { color: #ffd479; font-weight: 600; }
+        .section { display: grid; gap: 16px; }
+        a { color: var(--primary); text-decoration: none; }
+        @media (max-width: 960px) { .container { grid-template-columns: 1fr; } body { padding: 20px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card" id="loginCard">
+        <h2>管理员登录</h2>
+        <label>用户名</label>
+        <input id="username" placeholder="admin" autocomplete="username">
+        <label>密码</label>
+        <input id="password" type="password" placeholder="******" autocomplete="current-password">
+        <button onclick="login()">登录</button>
+        <p class="muted" style="margin-top:8px;">默认账号：admin / 123456</p>
+        <p class="muted" id="loginMsg"></p>
+    </div>
+
+    <div class="section">
+        <div class="card">
+            <h2>站点配置</h2>
+            <label>站点标题</label>
+            <input id="siteTitle" placeholder="易航导航">
+            <label>背景地址</label>
+            <input id="siteBg" placeholder="/assets/images/bg.webp">
+            <label>广告开关</label>
+            <select id="adsEnabled">
+                <option value="true">开启</option>
+                <option value="false">关闭</option>
+            </select>
+            <button onclick="saveConfig()">保存配置</button>
+            <p class="muted" id="configMsg"></p>
+        </div>
+
+        <div class="card">
+            <h2>数据统计</h2>
+            <div class="row">
+                <div class="pill">用户 <span id="statUsers">-</span></div>
+                <div class="pill">搜索 <span id="statSearch">-</span></div>
+                <div class="pill">备份 <span id="statBackup">-</span></div>
+            </div>
+            <div class="muted" id="lastLogin" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>备份与恢复</h2>
+            <div class="row">
+                <button onclick="triggerBackup()">立即备份</button>
+                <button class="secondary" onclick="loadBackups()">刷新列表</button>
+            </div>
+            <div style="margin:10px 0;">
+                <input type="file" id="restoreFile" />
+                <button class="secondary" onclick="restoreBackup()">上传并恢复</button>
+            </div>
+            <div class="list" id="backupList"></div>
+            <p class="muted">备份为 ZIP，包含 SQLite 与上传目录，可定时自动备份。</p>
+        </div>
+
+        <div class="card">
+            <h2>卡片元数据助手</h2>
+            <label>站点 URL</label>
+            <input id="metaUrl" placeholder="https://example.com">
+            <button onclick="fetchMeta()">抓取元数据</button>
+            <p class="muted" id="metaResult"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const api = (path) => '/api' + path;
+    const tokenKey = 'yh_token';
+
+    const setStatus = (id, msg) => document.getElementById(id).innerText = msg || '';
+    const headers = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const t = localStorage.getItem(tokenKey);
+        if (t) h['Authorization'] = 'Bearer ' + t;
+        return h;
+    };
+
+    async function login() {
+        setStatus('loginMsg', '登录中...');
+        const body = { username: document.getElementById('username').value, password: document.getElementById('password').value };
+        const res = await fetch(api('/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) {
+            localStorage.setItem(tokenKey, data.data.token);
+            setStatus('loginMsg', '登录成功');
+            await loadConfig();
+            await loadStats();
+            await loadBackups();
+        } else {
+            setStatus('loginMsg', data.message || '登录失败');
+        }
+    }
+
+    async function loadConfig() {
+        const res = await fetch(api('/admin/config'), { headers: headers() });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('siteTitle').value = data.data['site.title'] || '';
+            document.getElementById('siteBg').value = data.data['site.background'] || '';
+            document.getElementById('adsEnabled').value = (data.data['ads.enabled'] || 'true');
+        }
+    }
+
+    async function saveConfig() {
+        const body = {
+            'site.title': document.getElementById('siteTitle').value,
+            'site.background': document.getElementById('siteBg').value,
+            'ads.enabled': document.getElementById('adsEnabled').value
+        };
+        const res = await fetch(api('/admin/config'), { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+        const data = await res.json();
+        setStatus('configMsg', data.success ? '已保存' : (data.message || '保存失败'));
+    }
+
+    async function loadStats() {
+        const res = await fetch(api('/admin/stats'), { headers: headers() });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('statUsers').innerText = data.data.userCount;
+            document.getElementById('statSearch').innerText = data.data.searchCount;
+            document.getElementById('statBackup').innerText = data.data.backupCount;
+            const last = data.data.lastLogin || {};
+            document.getElementById('lastLogin').innerText = last.username ? `最近登录：${last.username} @ ${last.lastLoginAt} / ${last.lastLoginIp || '-'}` : '暂无登录记录';
+        }
+    }
+
+    async function loadBackups() {
+        const res = await fetch(api('/admin/backups'), { headers: headers() });
+        const container = document.getElementById('backupList');
+        container.innerHTML = '';
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+            data.data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div>
+                        <div>${item.fileName}</div>
+                        <div class="muted">${(item.fileSize/1024/1024).toFixed(2)} MB • ${item.type}</div>
+                    </div>
+                    <button class="danger" onclick="deleteBackup(${item.id})">删除</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+    }
+
+    async function triggerBackup() {
+        setStatus('configMsg', '正在备份...');
+        const res = await fetch(api('/admin/backups'), { method: 'POST', headers: headers() });
+        const data = await res.json();
+        setStatus('configMsg', data.success ? '备份完成' : (data.message || '备份失败'));
+        await loadBackups();
+    }
+
+    async function deleteBackup(id) {
+        await fetch(api('/admin/backups/' + id), { method: 'DELETE', headers: headers() });
+        await loadBackups();
+    }
+
+    async function restoreBackup() {
+        const file = document.getElementById('restoreFile').files[0];
+        if (!file) return setStatus('configMsg', '请选择备份文件');
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(api('/admin/backups/restore'), { method: 'POST', headers: { 'Authorization': headers()['Authorization'] }, body: form });
+        const data = await res.json();
+        setStatus('configMsg', data.success ? '恢复完成' : (data.message || '恢复失败'));
+    }
+
+    async function fetchMeta() {
+        const url = document.getElementById('metaUrl').value;
+        if (!url) return;
+        const res = await fetch(api('/admin/cards/metadata?url=') + encodeURIComponent(url), { headers: headers() });
+        const data = await res.json();
+        if (data.success) {
+            const m = data.data;
+            document.getElementById('metaResult').innerText = `标题: ${m.title || '-'} / 描述: ${m.description || '-'} / Logo: ${m.logo || '-'}`;
+        } else {
+            document.getElementById('metaResult').innerText = data.message || '获取失败';
+        }
+    }
+
+    // 如果已有 token，自动加载
+    (async () => {
+        if (localStorage.getItem(tokenKey)) {
+            await loadConfig();
+            await loadStats();
+            await loadBackups();
+        }
+    })();
+</script>
+</body>
+</html>
