@@ -43,7 +43,7 @@ public class PublicController {
         HomeResponse response = new HomeResponse();
         response.setConfig(siteConfigService.list().stream()
                 .collect(Collectors.toMap(c -> c.getConfigKey(), c -> c.getConfigValue())));
-        response.getConfig().putIfAbsent("site.title", "易航导航");
+        response.getConfig().putIfAbsent("site.title", "贻点导航");
         response.getConfig().putIfAbsent("site.background", "/assets/images/bg.webp");
         response.getConfig().putIfAbsent("ads.enabled", "true");
         List<NavCategoryDTO> roots = categoryService.listRoot().stream()

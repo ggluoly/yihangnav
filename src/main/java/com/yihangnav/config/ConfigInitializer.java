@@ -19,7 +19,7 @@ public class ConfigInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Map<String, String> defaults = new HashMap<>();
-        defaults.put("site.title", "易航导航");
+        defaults.put("site.title", "贻点导航");
         defaults.put("site.background", "/assets/images/bg.webp");
         defaults.put("ads.enabled", "true");
         defaults.forEach((k, v) -> siteConfigService.get(k).orElseGet(() -> siteConfigService.save(k, v)));

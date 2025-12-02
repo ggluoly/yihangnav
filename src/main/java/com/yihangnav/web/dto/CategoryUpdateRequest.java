@@ -3,6 +3,7 @@ package com.yihangnav.web.dto;
 public class CategoryUpdateRequest {
     private String name;
     private String description;
+    private String icon;
     private Integer sortOrder;
     private Long parentId;
     private boolean parentIdSet = false;
@@ -29,6 +30,14 @@ public class CategoryUpdateRequest {
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public Long getParentId() {

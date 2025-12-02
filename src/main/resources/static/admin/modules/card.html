@@ -1,35 +1,594 @@
-<div class="panel panel-block" id="panel-card">
-    <h3>卡片管理</h3>
-    <div class="row">
-        <div>
-            <label>标题</label>
-            <input id="cardTitle" placeholder="网站名称">
-        </div>
-        <div>
-            <label>URL</label>
-            <input id="cardUrl" placeholder="https://">
-        </div>
-        <div>
-            <label>描述</label>
-            <input id="cardDesc" placeholder="一句话描述">
-        </div>
-        <div>
-            <label>Logo</label>
-            <input id="cardLogo" placeholder="可留空自动抓取">
-        </div>
-        <div>
-            <label>分类ID</label>
-            <input id="cardCatId" type="number" placeholder="分类ID">
-        </div>
-        <div>
-            <label>排序</label>
-            <input id="cardSort" type="number" value="0">
-        </div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<style>
+    .card-page { background:#fff; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,0.06); border:1px solid #e5e7eb; padding:14px; }
+    .notice { background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:10px 12px; color:#c2410c; font-size:13px; line-height:1.5; margin-bottom:12px; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+    .toolbar select, .toolbar input { padding:8px 10px; border:1px solid #d1d5db; border-radius:10px; font-size:13px; min-width:140px; }
+    .toolbar input { min-width:220px; }
+    .btn { border:none; border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; }
+    .btn.primary { background:#0b72f3; color:#fff; }
+    .btn.secondary { background:#10b981; color:#fff; }
+    .btn.danger { background:#ef4444; color:#fff; }
+    .btn.muted { background:#e5e7eb; color:#111827; }
+    .table-wrap { overflow:auto; border:1px solid #e5e7eb; border-radius:12px; }
+    table.card-table { width:100%; border-collapse:collapse; font-size:13px; }
+    table.card-table th, table.card-table td { padding:10px 8px; border-bottom:1px solid #edf2f7; text-align:left; white-space:nowrap; }
+    table.card-table th { background:#f9fafb; color:#374151; font-weight:700; }
+    table.card-table tr:hover td { background:#f8fafc; }
+    .badge { display:inline-flex; align-items:center; padding:3px 8px; border-radius:999px; font-size:12px; }
+    .badge.green { background:#ecfdf3; color:#16a34a; }
+    .badge.orange { background:#fff7ed; color:#c2410c; }
+    .badge.gray { background:#f3f4f6; color:#4b5563; }
+    .actions button { margin-right:6px; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; z-index:999; }
+    .modal { position:relative; background:#fff; border-radius:14px; padding:18px; width:520px; box-shadow:0 14px 32px rgba(0,0,0,0.15); }
+    .modal h4 { margin:0 0 12px; font-size:16px; }
+    .form-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+    .form-row { display:flex; flex-direction:column; gap:6px; }
+    .form-row label { font-size:13px; color:#374151; font-weight:600; }
+    .form-row input, .form-row textarea, .form-row select { padding:9px 10px; border-radius:10px; border:1px solid #d1d5db; font-size:14px; }
+    .form-row textarea { resize:vertical; min-height:80px; grid-column: span 2; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+    .input-inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .input-inline input { flex:1 1 240px; min-width:200px; }
+    .logo-preview { margin-top:6px; display:none; align-items:center; gap:8px; }
+    .logo-preview img { width:36px; height:36px; border-radius:8px; border:1px solid #e5e7eb; object-fit:cover; }
+    .mask { position:absolute; inset:0; background:rgba(255,255,255,0.75); display:none; align-items:center; justify-content:center; z-index:10; }
+    .loader { width:32px; height:32px; border:3px solid #dbeafe; border-top-color:#0b72f3; border-radius:50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .page-mask { position:fixed; inset:0; background:rgba(255,255,255,0.72); display:none; align-items:center; justify-content:center; flex-direction:column; z-index:9999; }
+</style>
+
+<div class="card-page">
+    <div class="notice">
+        <div>1. default2/5iux/heimdall/tushan2/webstack 支持自定义图标，其余主题自动获取链接图标。</div>
+        <div>2. 分类的私有属性优先级高于链接的私有属性。</div>
+        <div>3. 权重数字越大，链接排序越靠前。</div>
     </div>
-    <div class="row" style="margin-top:10px;">
-        <button onclick="createCard()">新增卡片</button>
-        <button class="secondary" onclick="searchCards()">搜索卡片</button>
-        <input id="cardKeyword" placeholder="关键词搜索" style="grid-column: span 2;">
+
+    <div class="toolbar">
+        <select id="filterCategory">
+            <option value="">请选择一个分类</option>
+        </select>
+        <input id="keyword" placeholder="输入关键词">
+        <button class="btn primary" onclick="searchCards()">搜索</button>
+        <button class="btn muted" onclick="resetFilters()">重置查询</button>
+        <button class="btn muted" onclick="batchCheck()">批量检测</button>
+        <button class="btn danger" onclick="batchDelete()">删除选中</button>
+        <button class="btn muted" onclick="batchSetCategory()">批量修改分类</button>
+        <button class="btn muted" onclick="setPrivate(true)">设为私有</button>
+        <button class="btn muted" onclick="setPrivate(false)">设为公开</button>
+        <button class="btn secondary" onclick="openCardDialog()">添加链接</button>
     </div>
-    <div class="list" id="cardList" style="margin-top:10px;"></div>
+
+    <div class="table-wrap">
+        <table class="card-table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="chkAll" onclick="toggleAllCards(this)"></th>
+                <th>ID</th>
+                <th>图标</th>
+                <th>所属分类</th>
+                <th>URL</th>
+                <th>链接标题</th>
+                <th>添加时间</th>
+                <th>修改时间</th>
+                <th>状态</th>
+                <th>权重</th>
+                <th>点击数</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="cardTableBody">
+            <tr><td colspan="12" class="muted">暂无数据</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:12px;">
+        <button class="btn secondary" onclick="exportCards()">导出所有链接</button>
+    </div>
+    <div id="batchMask" class="page-mask">
+        <div class="loader" aria-label="检测中"></div>
+        <div id="batchMaskText" class="text-muted mt-2" style="font-size:13px;">检测中...</div>
+    </div>
 </div>
+
+<div class="modal-backdrop" id="cardModalMask">
+    <div class="modal">
+        <div id="parseMask" class="mask"><div class="loader" aria-label="加载中"></div></div>
+        <h4 id="cardModalTitle">新增链接</h4>
+        <input type="hidden" id="cardIdHidden">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="cardTitle">标题</label>
+                <input id="cardTitle" placeholder="站点名称">
+            </div>
+            <div class="form-row">
+                <label for="cardUrl">URL</label>
+                <div class="input-inline">
+                    <input id="cardUrl" placeholder="https://">
+                    <button class="btn muted" type="button" onclick="parseCardMeta()" style="white-space:nowrap;">自动解析</button>
+                </div>
+            </div>
+            <div class="form-row" style="grid-column: span 2;">
+                <label for="cardLogo">图标</label>
+                <div class="input-inline">
+                    <input id="cardLogo" placeholder="可留空自动获取" oninput="updateLogoPreview()">
+                    <button class="btn muted" type="button" onclick="triggerLogoUpload()" style="white-space:nowrap;">上传Logo</button>
+                </div>
+                <input type="file" id="logoFileInput" accept="image/*" style="display:none;">
+                <div id="logoPreview" class="logo-preview">
+                    <img id="logoPreviewImg" src="" alt="logo">
+                    <span class="muted" style="font-size:12px;">优先使用上传/自定义 Logo</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="cardCatId">所属分类</label>
+                <select id="cardCatId"></select>
+            </div>
+            <div class="form-row">
+                <label for="cardSort">权重</label>
+                <input id="cardSort" type="number" value="0">
+            </div>
+            <div class="form-row" style="grid-column: span 2;">
+                <label for="cardDesc">描述</label>
+                <textarea id="cardDesc" rows="3" placeholder="一句话描述"></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn muted" onclick="closeCardDialog()">取消</button>
+            <button class="btn primary" id="cardSaveBtn">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 批量修改分类弹窗 -->
+<div class="modal-backdrop" id="batchCatMask" style="display:none;">
+    <div class="modal" style="width:400px;">
+        <h4 class="mb-3">批量修改分类</h4>
+        <div class="form-row">
+            <label for="batchCatSelect">选择目标分类</label>
+            <select id="batchCatSelect"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn muted" onclick="closeBatchCat()">取消</button>
+            <button class="btn primary" onclick="confirmBatchCat()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const stateBadge = (enabled) => enabled === false ? '<span class="badge orange">异常</span>' : '<span class="badge green">正常</span>';
+    window.__cardCache = [];
+    window.__cardCats = [];
+
+    async function ensureCategoriesLoaded() {
+        if (window.__cardCats && window.__cardCats.length) return;
+        await loadCardCategoriesForFilter();
+    }
+
+    async function openCardDialog(card) {
+        await ensureCategoriesLoaded();
+        const mask = document.getElementById('cardModalMask');
+        const title = document.getElementById('cardModalTitle');
+        document.getElementById('cardIdHidden').value = card?.id || '';
+        document.getElementById('cardTitle').value = card?.title || '';
+        document.getElementById('cardUrl').value = card?.url || '';
+        document.getElementById('cardDesc').value = card?.description || '';
+        document.getElementById('cardLogo').value = card?.logo || '';
+        document.getElementById('cardSort').value = card?.sortOrder ?? 0;
+        document.getElementById('cardCatId').value = card?.category?.id || '';
+        updateLogoPreview();
+        if (title) title.innerText = card ? '编辑链接' : '新增链接';
+        loadCardCategoriesForSelect();
+        if (mask) mask.style.display = 'flex';
+    }
+    function closeCardDialog() { const mask = document.getElementById('cardModalMask'); if (mask) mask.style.display = 'none'; }
+
+    async function loadCardCategoriesForFilter() {
+        try {
+            const res = await fetch(api('/admin/categories'), { headers: headers() });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) {
+                window.__cardCats = data.data;
+                const sel = document.getElementById('filterCategory');
+                if (sel) {
+                    sel.innerHTML = '<option value="">请选择一个分类</option>';
+                    data.data.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.name || ('分类 ' + c.id);
+                        sel.appendChild(opt);
+                    });
+                }
+            }
+        } catch (e) { console.error('load categories failed', e); }
+    }
+    function loadCardCategoriesForSelect() {
+        const sel = document.getElementById('cardCatId');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">未选择</option>';
+        (window.__cardCats || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name || ('分类 ' + c.id);
+            sel.appendChild(opt);
+        });
+    }
+
+    async function searchCards() {
+        const kw = document.getElementById('keyword')?.value || '';
+        const catId = document.getElementById('filterCategory')?.value || '';
+        const tbody = document.getElementById('cardTableBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="12" class="muted">加载中...</td></tr>';
+
+        const fetchList = async (keyword) => {
+            const res = await fetch(api('/admin/cards/search?keyword=') + encodeURIComponent(keyword || ''), { headers: headers() });
+            const data = await res.json();
+            return (data.success && Array.isArray(data.data)) ? data.data : [];
+        };
+
+        try {
+            let all = await fetchList(kw);
+            if (kw.trim() && (!all || !all.length)) {
+                all = await fetchList(''); // 兜底全量，便于本地 URL/描述匹配
+            }
+            window.__cardCache = all || [];
+            let list = window.__cardCache;
+            if (catId) list = list.filter(c => c.category && String(c.category.id) === String(catId));
+            if (kw.trim()) {
+                const key = kw.trim().toLowerCase();
+                const hit = (text) => (text || '').toLowerCase().includes(key);
+                list = list.filter(c => hit(c.title) || hit(c.url) || hit(c.description));
+                const score = (c) => {
+                    const titleHit = hit(c.title) ? 3 : 0;
+                    const urlHit = hit(c.url) ? 2 : 0;
+                    const descHit = hit(c.description) ? 1 : 0;
+                    return titleHit || urlHit || descHit ? (titleHit + urlHit + descHit) : 0;
+                };
+                list = [...list].sort((a, b) => score(b) - score(a));
+            }
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (!list.length) tbody.innerHTML = '<tr><td colspan="12" class="muted">无匹配数据</td></tr>';
+                list.forEach(item => tbody.appendChild(renderCardRow(item)));
+            }
+        } catch (e) {
+            console.error(e);
+            if (tbody) tbody.innerHTML = '<tr><td colspan="12" class="muted">加载失败</td></tr>';
+        }
+    }
+
+    function renderCardRow(card) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="checkbox" data-id="${card.id || ''}"></td>
+            <td>${card.id || ''}</td>
+            <td>${card.logo ? `<img src="${card.logo}" alt="logo" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">` : '<span class="badge gray">默认</span>'}</td>
+            <td>${card.category && card.category.name ? card.category.name : '默认分类'}</td>
+            <td><a href="${card.url || '#'}" target="_blank">${card.url || ''}</a></td>
+            <td>${card.title || ''}</td>
+            <td>${card.createdAt ? card.createdAt.replace('T',' ').split('.')[0] : ''}</td>
+            <td>${card.updatedAt ? card.updatedAt.replace('T',' ').split('.')[0] : ''}</td>
+            <td>${stateBadge(card.enabled)}</td>
+            <td>${card.sortOrder ?? 0}</td>
+            <td>${card.clickCount ?? 0}</td>
+            <td class="actions">
+                <button class="btn secondary" onclick="handleEdit(${card.id})">编辑</button>
+                <button class="btn danger" onclick="deleteCard(${card.id})">删除</button>
+            </td>
+        `;
+        return tr;
+    }
+
+    function toggleAllCards(box) { document.querySelectorAll('#cardTableBody input[type="checkbox"]').forEach(cb => cb.checked = box.checked); }
+
+    async function deleteCard(id) {
+        if (!confirm('确认删除该链接？')) return;
+        await fetch(api('/admin/cards/' + id), { method: 'DELETE', headers: headers() });
+        searchCards();
+    }
+
+    async function handleEdit(id) {
+        await ensureCategoriesLoaded();
+        const card = window.__cardCache?.find(c => Number(c.id) === Number(id));
+        if (!card) { alert('未找到该链接'); return; }
+        openCardDialog(card);
+    }
+
+    function batchDelete() {
+        const ids = Array.from(document.querySelectorAll('#cardTableBody input[type="checkbox"]:checked')).map(cb => cb.dataset.id);
+        if (!ids.length) { alert('请先选择要删除的链接'); return; }
+        if (!confirm('确认批量删除选中的链接？')) return;
+        Promise.all(ids.map(id => fetch(api('/admin/cards/' + id), { method: 'DELETE', headers: headers() })))
+            .then(() => searchCards());
+    }
+
+    function batchCheckMask(show, text) {
+        const mask = document.getElementById('batchMask');
+        const txt = document.getElementById('batchMaskText');
+        if (txt && text) txt.innerText = text;
+        if (mask) mask.style.display = show ? 'flex' : 'none';
+    }
+
+    async function probeUrl(url) {
+        if (!url) return false;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 6000);
+        try {
+            const res = await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+            clearTimeout(timer);
+            if (res && (res.ok || res.type === 'opaque')) return true;
+            // 再试 GET
+            const res2 = await fetch(url, { method: 'GET', mode: 'no-cors' });
+            return res2 && (res2.ok || res2.type === 'opaque');
+        } catch (e) {
+            clearTimeout(timer);
+            return false;
+        }
+    }
+
+    async function updateCardEnabled(card, enabled) {
+        if (!card || card.id == null) return;
+        const body = {
+            title: card.title || '',
+            url: card.url || '',
+            description: card.description || '',
+            logo: card.logo || '',
+            sortOrder: card.sortOrder ?? 0,
+            enabled: enabled,
+        };
+        if (card.category && card.category.id) body.category = { id: card.category.id };
+        try {
+            await fetch(api('/admin/cards/' + card.id), { method: 'PUT', headers: headers(), body: JSON.stringify(body) });
+        } catch (e) {
+            console.error('update enabled failed', e);
+        }
+    }
+
+    async function checkCardStatus(id) {
+        const card = window.__cardCache.find(c => Number(c.id) === Number(id));
+        if (!card) return { ok: false, message: '未找到链接' };
+        // 优先尝试后端检测接口
+        try {
+            const res = await fetch(api(`/admin/cards/${id}/check`), { method: 'POST', headers: headers() });
+            const data = await res.json();
+            if (data.success && data.data && typeof data.data.enabled !== 'undefined') {
+                card.enabled = data.data.enabled;
+                await updateCardEnabled(card, card.enabled);
+                return { ok: true, enabled: card.enabled };
+            }
+        } catch (e) {
+            console.warn('后端检测失败，使用前端探测', e);
+        }
+        const ok = await probeUrl(card.url);
+        card.enabled = ok;
+        await updateCardEnabled(card, ok);
+        return { ok: true, enabled: ok };
+    }
+
+    async function batchCheck() {
+        const ids = Array.from(document.querySelectorAll('#cardTableBody input[type="checkbox"]:checked')).map(cb => cb.dataset.id);
+        if (!ids.length) { alert('请先选择要检测的链接'); return; }
+        batchCheckMask(true, '检测中...');
+        const bad = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            batchCheckMask(true, `检测中 (${i + 1}/${ids.length})`);
+            const result = await checkCardStatus(id);
+            if (!result.ok || result.enabled === false) {
+                const card = window.__cardCache.find(c => Number(c.id) === Number(id));
+                bad.push(card?.title || card?.url || id);
+            }
+        }
+        batchCheckMask(false);
+        searchCards();
+        if (bad.length) {
+            alert(`检测完成，异常链接：\n${bad.join('\n')}`);
+        } else {
+            alert('检测完成，未发现异常链接');
+        }
+    }
+
+    function openBatchCat() {
+        const mask = document.getElementById('batchCatMask');
+        const sel = document.getElementById('batchCatSelect');
+        if (sel) {
+            sel.innerHTML = '<option value="">请选择</option>';
+            (window.__cardCats || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name || ('分类 ' + c.id);
+                sel.appendChild(opt);
+            });
+        }
+        if (mask) mask.style.display = 'flex';
+    }
+    function closeBatchCat() { const mask = document.getElementById('batchCatMask'); if (mask) mask.style.display = 'none'; }
+
+    async function confirmBatchCat() {
+        const sel = document.getElementById('batchCatSelect');
+        const targetId = sel?.value;
+        if (!targetId) { alert('请选择目标分类'); return; }
+        const ids = Array.from(document.querySelectorAll('#cardTableBody input[type="checkbox"]:checked')).map(cb => cb.dataset.id);
+        if (!ids.length) { alert('请先选择要修改的链接'); return; }
+        batchCheckMask(true, '批量更新分类...');
+        for (const id of ids) {
+            const card = window.__cardCache.find(c => Number(c.id) === Number(id));
+            if (!card) continue;
+            const body = {
+                title: card.title || '',
+                url: card.url || '',
+                description: card.description || '',
+                logo: card.logo || '',
+                sortOrder: card.sortOrder ?? 0,
+                enabled: card.enabled,
+                category: { id: Number(targetId) }
+            };
+            try {
+                await fetch(api('/admin/cards/' + id), { method: 'PUT', headers: headers(), body: JSON.stringify(body) });
+            } catch (e) {
+                console.error('update category failed', id, e);
+            }
+        }
+        batchCheckMask(false);
+        closeBatchCat();
+        searchCards();
+        alert('批量修改完成');
+    }
+
+    async function batchSetCategory() {
+        await ensureCategoriesLoaded();
+        openBatchCat();
+    }
+    function setPrivate(flag) { alert('私有/公开属性后端未提供，功能占位'); }
+    function exportCards() { alert('导出所有链接功能待实现'); }
+    function resetFilters() { const kw=document.getElementById('keyword'); const cat=document.getElementById('filterCategory'); if(kw) kw.value=''; if(cat) cat.value=''; searchCards(); }
+
+    async function saveCard() {
+        const body = {
+            title: document.getElementById('cardTitle')?.value || '',
+            url: normalizeUrl(document.getElementById('cardUrl')?.value || '', true),
+            description: document.getElementById('cardDesc')?.value || '',
+            logo: document.getElementById('cardLogo')?.value || '',
+            sortOrder: Number(document.getElementById('cardSort')?.value || 0)
+        };
+        const catId = document.getElementById('cardCatId')?.value;
+        if (catId) body.category = { id: Number(catId) };
+        const id = document.getElementById('cardIdHidden')?.value;
+        const url = id ? api('/admin/cards/' + id) : api('/admin/cards');
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) { closeCardDialog(); searchCards(); }
+        else { alert(data.message || '保存失败'); }
+    }
+
+    document.getElementById('cardSaveBtn').onclick = saveCard;
+
+    function triggerLogoUpload() {
+        const fileInput = document.getElementById('logoFileInput');
+        if (fileInput) fileInput.click();
+    }
+
+    function showParseMask(show) {
+        const mask = document.getElementById('parseMask');
+        if (!mask) return;
+        mask.style.display = show ? 'flex' : 'none';
+    }
+
+    async function uploadLogo(file) {
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        const token = localStorage.getItem(tokenKey);
+        const res = await fetch(api('/admin/upload'), { method: 'POST', headers: token ? { 'Authorization': 'Bearer ' + token } : {}, body: fd });
+        const data = await res.json();
+        if (data.success && data.data) {
+            const logoInput = document.getElementById('cardLogo');
+            if (logoInput) logoInput.value = data.data;
+            updateLogoPreview();
+            alert('上传成功');
+        } else {
+            alert(data.message || '上传失败');
+        }
+    }
+
+    const logoFileInput = document.getElementById('logoFileInput');
+    if (logoFileInput) {
+        logoFileInput.addEventListener('change', () => {
+            const file = logoFileInput.files && logoFileInput.files[0];
+            uploadLogo(file);
+        });
+    }
+
+    function updateLogoPreview() {
+        const src = document.getElementById('cardLogo')?.value || '';
+        const wrap = document.getElementById('logoPreview');
+        const img = document.getElementById('logoPreviewImg');
+        if (wrap && img) {
+            if (src.trim()) {
+                img.src = src.trim();
+                wrap.style.display = 'flex';
+            } else {
+                wrap.style.display = 'none';
+            }
+        }
+    }
+
+    async function parseCardMeta() {
+        const urlInput = document.getElementById('cardUrl');
+        if (!urlInput || !urlInput.value.trim()) { alert('请先输入网址'); return; }
+        const raw = urlInput.value.trim();
+        const primary = normalizeUrl(raw, true);
+        const fallback = normalizeUrl(raw, false);
+        showParseMask(true);
+        try {
+            const meta = await tryFetchMeta(primary) || await tryFetchMeta(fallback);
+            if (meta) {
+                urlInput.value = meta.urlUsed || primary;
+                if (meta.title) document.getElementById('cardTitle').value = meta.title;
+                if (meta.description) document.getElementById('cardDesc').value = meta.description;
+                const logoVal = meta.logo || buildFavicon(meta.urlUsed || primary);
+                if (logoVal) { document.getElementById('cardLogo').value = logoVal; updateLogoPreview(); }
+                alert('解析成功，已填充字段');
+            } else {
+                urlInput.value = primary;
+                const guess = guessTitleFromUrl(primary);
+                if (guess) document.getElementById('cardTitle').value = guess;
+                alert('未能解析信息，已保留 URL 并填入简要标题');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('解析失败，请稍后重试');
+        } finally {
+            showParseMask(false);
+        }
+    }
+
+    const cardUrlInput = document.getElementById('cardUrl');
+    if (cardUrlInput) {
+        cardUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); parseCardMeta(); }
+        });
+    }
+
+    function normalizeUrl(u, preferHttps = true) {
+        const trimmed = (u || '').trim();
+        if (!trimmed) return '';
+        if (/^https?:\/\//i.test(trimmed)) return trimmed;
+        return (preferHttps ? 'https://' : 'http://') + trimmed;
+    }
+
+    async function tryFetchMeta(url) {
+        try {
+            const res = await fetch(api('/admin/cards/metadata?url=') + encodeURIComponent(url), { headers: headers() });
+            const data = await res.json();
+            if (data.success && data.data) {
+                return { ...data.data, urlUsed: url };
+            }
+            return null;
+        } catch (e) {
+            console.error('meta fetch failed', url, e);
+            return null;
+        }
+    }
+
+    function guessTitleFromUrl(u) {
+        try {
+            const host = new URL(u).hostname.replace(/^www\./,'');
+            return host || '';
+        } catch { return ''; }
+    }
+
+    function buildFavicon(u) {
+        try {
+            const url = new URL(u);
+            return `${url.origin}/favicon.ico`;
+        } catch { return ''; }
+    }
+
+    loadCardCategoriesForFilter();
+    searchCards();
+</script>

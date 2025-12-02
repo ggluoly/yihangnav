@@ -50,6 +50,9 @@ public class CategoryController {
                     if (request.getDescription() != null) {
                         existing.setDescription(request.getDescription());
                     }
+                    if (request.getIcon() != null) {
+                        existing.setIcon(request.getIcon());
+                    }
                     if (request.getSortOrder() != null) {
                         existing.setSortOrder(request.getSortOrder());
                     }

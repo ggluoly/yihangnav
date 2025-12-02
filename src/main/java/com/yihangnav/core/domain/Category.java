@@ -18,6 +18,9 @@ public class Category extends BaseEntity {
     @Column(length = 128)
     private String description;
 
+    @Column(length = 128)
+    private String icon;
+
     @Column(nullable = false)
     private Integer sortOrder = 0;
 
@@ -46,6 +49,14 @@ public class Category extends BaseEntity {
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public Category getParent() {

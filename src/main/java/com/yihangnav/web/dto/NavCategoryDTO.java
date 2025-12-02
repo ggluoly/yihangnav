@@ -10,6 +10,7 @@ public class NavCategoryDTO {
     private Long id;
     private String name;
     private String description;
+    private String icon;
     private List<Card> cards = new ArrayList<>();
     private List<NavCategoryDTO> children = new ArrayList<>();
 
@@ -18,6 +19,7 @@ public class NavCategoryDTO {
         dto.setId(category.getId());
         dto.setName(category.getName());
         dto.setDescription(category.getDescription());
+        dto.setIcon(category.getIcon());
         return dto;
     }
 
@@ -43,6 +45,14 @@ public class NavCategoryDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public List<Card> getCards() {

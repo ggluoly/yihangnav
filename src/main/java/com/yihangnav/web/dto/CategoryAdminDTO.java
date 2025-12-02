@@ -9,6 +9,7 @@ public class CategoryAdminDTO {
      * 前端用作图标/描述字段
      */
     private String description;
+    private String icon;
     private Integer sortOrder;
     private Long parentId;
     private String parentName;
@@ -18,6 +19,7 @@ public class CategoryAdminDTO {
         dto.setId(category.getId());
         dto.setName(category.getName());
         dto.setDescription(category.getDescription());
+        dto.setIcon(category.getIcon());
         dto.setSortOrder(category.getSortOrder());
         if (category.getParent() != null) {
             dto.setParentId(category.getParent().getId());
@@ -48,6 +50,14 @@ public class CategoryAdminDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     public Integer getSortOrder() {

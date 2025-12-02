@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -40,19 +40,8 @@
         .stat-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,0.08),transparent 40%),radial-gradient(circle at 80% 0%,rgba(255,255,255,0.08),transparent 35%);pointer-events:none;}
         .stat-card::after{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,rgba(59,130,246,0.55),rgba(16,185,129,0.45));}
         .badge{width:46px;height:46px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#0f172a;box-shadow:0 12px 22px rgba(0,0,0,0.16);}
-        .accent-blue{background:linear-gradient(135deg,#dbeafe,#93c5fd);}
-        .accent-green{background:linear-gradient(135deg,#d1fae5,#a7f3d0);}
-        .accent-purple{background:linear-gradient(135deg,#ede9fe,#c4b5fd);}
-        .accent-orange{background:linear-gradient(135deg,#fff7ed,#fed7aa);}
-        .accent-slate{background:linear-gradient(135deg,#e5e7eb,#d1d5db);}
-        .accent-pink{background:linear-gradient(135deg,#ffe4e6,#fecdd3);}
-        .stat-body{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;}
-        .stat-title{font-size:16px;color:#f8fafc;margin:0;font-weight:800;letter-spacing:0.2px;}
-        .stat-value{font-size:26px;font-weight:800;color:#cbd5e1;}
-        .recent-table{width:100%;border-collapse:collapse;margin-top:10px;}
-        .recent-table th,.recent-table td{padding:10px 12px;font-size:14px;color:#0f172a;border-bottom:1px solid #e5e7eb;text-align:left;}
-        .recent-table th{color:#4b5563;font-weight:700;background:#f9fbfd;}
-        .recent-table tr:hover td{background:#f3f6fb;}
+        .accent-blue{background:linear-gradient(135deg,#dbeafe,#93c5fd);} .accent-green{background:linear-gradient(135deg,#d1fae5,#a7f3d0);} .accent-purple{background:linear-gradient(135deg,#ede9fe,#c4b5fd);} .accent-orange{background:linear-gradient(135deg,#fff7ed,#fed7aa);} .accent-slate{background:linear-gradient(135deg,#e5e7eb,#d1d5db);} .accent-pink{background:linear-gradient(135deg,#ffe4e6,#fecdd3);} .stat-body{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px;} .stat-title{font-size:16px;color:#f8fafc;margin:0;font-weight:800;letter-spacing:0.2px;} .stat-value{font-size:26px;font-weight:800;color:#cbd5e1;}
+        .recent-table{width:100%;border-collapse:collapse;margin-top:10px;} .recent-table th,.recent-table td{padding:10px 12px;font-size:14px;color:#0f172a;border-bottom:1px solid #e5e7eb;text-align:left;} .recent-table th{color:#4b5563;font-weight:700;background:#f9fbfd;} .recent-table tr:hover td{background:#f3f6fb;}
     </style>
 </head>
 <body>
@@ -71,12 +60,10 @@
                 <li data-module="category">- <span class="nav-icon">🗂</span>分类管理</li>
             </ul>
         </div>
-        <div class="section-title" data-collapse="section-link"><span class="nav-icon">🔗</span><span class="title-text">链接管理</span><span class="caret" id="caret-link">ˇ</span></div>
+        <div class="section-title single" data-collapse="section-link"><span class="nav-icon">🔗</span><span class="title-text">链接管理</span><span class="caret" id="caret-link">ˇ</span></div>
         <div class="menu-collapse" id="section-link">
             <ul class="menu">
-                <li data-module="card">- <span class="nav-icon">🔗</span>我的链接</li>
-                <li data-module="card">- <span class="nav-icon">➕</span>添加链接</li>
-                <li data-module="card">- <span class="nav-icon">📑</span>书签分享</li>
+                <li data-module="card">- <span class="nav-icon">🔗</span>链接管理</li>
             </ul>
         </div>
         <div class="section-title" data-collapse="section-system"><span class="nav-icon">⚙️</span><span class="title-text">系统设置</span><span class="caret" id="caret-system">ˇ</span></div>
@@ -175,7 +162,6 @@
         }
     }
 
-    // 仅负责获取+标准化，渲染交给 category 模块
     async function loadCategories() {
         try {
             const res = await fetch(api('/admin/categories'), { headers: headers() });
@@ -192,12 +178,10 @@
                 const parsedPid = Number(parentIdRaw);
                 let parentId = (parentIdRaw === null || parentIdRaw === undefined || !Number.isFinite(parsedPid)) ? 0 : parsedPid;
                 if (parentId && !nameMap.has(parentId)) parentId = 0;
-                const parentName =
-                    (c.parent && c.parent.name) ||
-                    c.parentName ||
-                    (parentId !== 0 ? nameMap.get(parentId) || `ID ${parentId}` : '');
-                const iconClass = c.description || c.icon || c.iconClass || '';
-                return { ...c, id: idNum, parentId, parentName, iconClass };
+                const parentName = (c.parent && c.parent.name) || c.parentName || (parentId !== 0 ? nameMap.get(parentId) || `ID ${parentId}` : '');
+                const iconClass = c.icon || c.iconClass || '';
+                const description = c.description || '';
+                return { ...c, id: idNum, parentId, parentName, iconClass, description };
             });
             window.__catList = normalized;
             if (typeof window.renderCategoryTree === 'function') {
@@ -215,23 +199,23 @@
         if (newParentId) body.parent = { id: newParentId };
         await fetch(api('/admin/categories/' + id), { method: 'PUT', headers: headers(), body: JSON.stringify(body) });
     }
+
     async function deleteCategory(id) {
-        if (!confirm('Are you sure to delete this category?')) return;
+        if (!confirm('确定删除该分类？')) return;
         const res = await fetch(api('/admin/categories/' + id), { method: 'DELETE', headers: headers() });
-        if (res.ok) { toast('Category removed'); await loadCategories(); }
-        else { const data = await res.json().catch(() => ({})); alert(data.message || 'Delete failed'); }
+        if (res.ok) { toast('分类已删除'); await loadCategories(); }
+        else { const data = await res.json().catch(() => ({})); alert(data.message || '删除失败'); }
     }
 
     async function createCategory() {
         const nameVal = (document.getElementById('catName')?.value || '').trim();
-        if (!nameVal) { alert('Name is required'); return; }
+        if (!nameVal) { alert('名称必填'); return; }
         const body = {
             name: nameVal,
-            description: document.getElementById('catDesc')?.value || '',
+            icon: document.getElementById('catDesc')?.value || '',
+            description: document.getElementById('catMemo')?.value || '',
             sortOrder: Number(document.getElementById('catSort')?.value || 0)
         };
-        const memo = document.getElementById('catMemo')?.value || '';
-        if (memo) body.memo = memo;
         const parentId = document.getElementById('catParent')?.value;
         if (parentId) {
             const pid = Number(parentId);
@@ -245,15 +229,15 @@
             const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
             const data = await res.json();
             if (data.success) {
-                toast(catId ? 'Category updated' : 'Category created');
+                toast(catId ? '分类已更新' : '分类已创建');
                 if (document.getElementById('catId')) document.getElementById('catId').value = '';
                 await loadCategories();
             } else {
-                alert(data.message || 'Operation failed');
+                alert(data.message || '操作失败');
             }
         } catch (err) {
             console.error('createCategory error', err);
-            alert('Request failed, please retry');
+            alert('请求失败，请重试');
         }
     }
 
@@ -402,18 +386,6 @@
                 list.appendChild(item);
             });
         }
-    }
-
-    async function createUser() {
-        const body = {
-            username: document.getElementById('userNameInput')?.value || '',
-            password: document.getElementById('userPwdInput')?.value || '',
-            role: document.getElementById('userRoleInput')?.value || 'ADMIN'
-        };
-        const res = await fetch(api('/admin/users'), { method: 'POST', headers: headers(), body: JSON.stringify(body) });
-        const data = await res.json();
-        if (data.success) toast('用户已创建'); else alert(data.message || '创建失败');
-        await loadUsers();
     }
 
     async function searchCards() {
